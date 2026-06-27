@@ -69,8 +69,10 @@ journalctl -u caudalimetro -f
 
 ## Registros Modbus
 
-| Dirección | Contenido | Tipo |
-|---|---|---|
-| 0x0015 | Temperatura | int16 |
-| 0x0016–0x0017 | Flujo | float32 (big-endian) |
-| 0x0018–0x0019 | Flujo acumulado | uint32 (big-endian) |
+| Dirección | Contenido | Tipo | Acceso |
+|---|---|---|---|
+| 0x0015 | Temperatura | int16 | R |
+| 0x0016–0x0017 | Flujo | float32 big-endian | R |
+| 0x0018–0x001B | Flujo acumulado | uint64 big-endian (4 palabras) | R/W |
+
+> Resetear acumulado: escribir 0x0000 en los 4 registros 0x0018–0x001B.

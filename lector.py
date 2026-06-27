@@ -35,25 +35,38 @@ def _regs_a_float32(hi: int, lo: int) -> float:
     return struct.unpack(">f", raw)[0]
 
 
-def _regs_a_uint32(hi: int, lo: int) -> int:
-    raw = struct.pack(">HH", hi, lo)
-    return struct.unpack(">I", raw)[0]
+def _regs_a_uint64(w3: int, w2: int, w1: int, w0: int) -> int:
+    """Convierte cuatro registros de 16 bits (big-endian) a uint64."""
+    raw = struct.pack(">HHHH", w3, w2, w1, w0)
+    return struct.unpack(">Q", raw)[0]
 
 
-def _leer_datos(client: ModbusSerialClient) -> tuple[float, int, float] | None:
-    # Leer bloque 0x0015..0x0019 (5 registros) en una sola trama
+def _leer_datos(client: ModbusSerialClient) -> tuple[float, int, int] | None:
+    # Leer bloque 0x0015..0x001B (7 registros) en una sola trama
     resp = client.read_holding_registers(
-        address=0x0015, count=5, slave=config.SLAVE_ADDRESS
+        address=0x0015, count=7, slave=config.SLAVE_ADDRESS
     )
     if resp.isError():
         log.warning("Error Modbus: %s", resp)
         return None
 
-    regs = resp.registers  # [0x15, 0x16, 0x17, 0x18, 0x19]
+    regs = resp.registers  # [0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B]
     temperatura = regs[0]
     flujo = _regs_a_float32(regs[1], regs[2])
-    flujo_acumulado = float(_regs_a_uint32(regs[3], regs[4]))
+    flujo_acumulado = _regs_a_uint64(regs[3], regs[4], regs[5], regs[6])
     return flujo, temperatura, flujo_acumulado
+
+
+def resetear_acumulado(client: ModbusSerialClient):
+    """Escribe cero en los 4 registros del acumulado (R/W)."""
+    valores = [0, 0, 0, 0]
+    resp = client.write_registers(
+        address=0x0018, values=valores, slave=config.SLAVE_ADDRESS
+    )
+    if resp.isError():
+        log.error("Error al resetear acumulado: %s", resp)
+    else:
+        log.info("Acumulado reseteado a 0.")
 
 
 def main():
@@ -85,7 +98,7 @@ def main():
             if datos:
                 flujo, temperatura, acumulado = datos
                 influx.escribir(flujo, temperatura, acumulado)
-                log.info("flujo=%.3f m³/h  temp=%d°C  acum=%.1f m³", flujo, temperatura, acumulado)
+                log.info("flujo=%.3f m³/h  temp=%d°C  acum=%d", flujo, temperatura, acumulado)
                 errores_consecutivos = 0
             else:
                 errores_consecutivos += 1

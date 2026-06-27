@@ -8,11 +8,13 @@ TIMEOUT = 1.0
 SLAVE_ADDRESS = 1
 
 # Registros Modbus (dirección base 0-indexed para pymodbus)
-REG_FLUJO_HI = 0x0016      # float32 high word
-REG_FLUJO_LO = 0x0017      # float32 low word
 REG_TEMPERATURA = 0x0015   # int16
-REG_ACUM_HI = 0x0018       # flujo acumulado high word
-REG_ACUM_LO = 0x0019       # flujo acumulado low word
+REG_FLUJO_HI    = 0x0016   # float32 word alto
+REG_FLUJO_LO    = 0x0017   # float32 word bajo
+REG_ACUM_W3     = 0x0018   # uint64 acumulado word 3 (más significativo)
+REG_ACUM_W2     = 0x0019   # uint64 acumulado word 2
+REG_ACUM_W1     = 0x001A   # uint64 acumulado word 1
+REG_ACUM_W0     = 0x001B   # uint64 acumulado word 0 (menos significativo)
 
 # MAX485: pin GPIO para control DE/RE (BCM). None = sin control SW (jumper fijo a TX)
 RS485_DE_PIN = None

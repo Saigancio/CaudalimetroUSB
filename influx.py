@@ -23,7 +23,7 @@ def _get_client():
     return _client, _write_api, _query_api
 
 
-def escribir(flujo: float, temperatura: int, flujo_acumulado: float):
+def escribir(flujo: float, temperatura: int, flujo_acumulado: int):
     _, write_api, _ = _get_client()
     point = (
         Point("caudal")

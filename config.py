@@ -24,7 +24,7 @@ INTERVALO_SEGUNDOS = 10
 
 # InfluxDB
 INFLUX_URL = "http://localhost:8086"
-INFLUX_TOKEN = ""           # vacío = auth deshabilitado (InfluxDB OSS sin auth)
+INFLUX_TOKEN = "aaeVhSnGzZe-8oT94dJT54Rab2i6xGCacJXZO6PBmpYyKk09NHWSAgAh-oYA25oD0UQM-zbMhKpzM7noBF7wog=="
 INFLUX_ORG = "lab"
 INFLUX_BUCKET = "caudalimetro"
 

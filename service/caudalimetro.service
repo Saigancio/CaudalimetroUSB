@@ -1,0 +1,20 @@
+[Unit]
+Description=Lector caudalímetro Modbus RTU → InfluxDB
+After=network.target influxdb.service
+Wants=influxdb.service
+
+[Service]
+Type=simple
+User=caudalimetro
+WorkingDirectory=/opt/caudalimetro
+ExecStart=/opt/caudalimetro/venv/bin/python /opt/caudalimetro/lector.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Acceso al puerto serie
+SupplementaryGroups=uucp
+
+[Install]
+WantedBy=multi-user.target

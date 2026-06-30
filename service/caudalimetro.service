@@ -13,8 +13,8 @@ RestartSec=10
 StandardOutput=journal
 StandardError=journal
 
-# Acceso al puerto serie
-SupplementaryGroups=uucp
+# Acceso al puerto serie y a GPIO (control DE/RE del MAX485)
+SupplementaryGroups=uucp gpio
 
 [Install]
 WantedBy=multi-user.target

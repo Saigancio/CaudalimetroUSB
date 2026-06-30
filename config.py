@@ -16,8 +16,9 @@ REG_ACUM_W2     = 0x0019   # uint64 acumulado word 2
 REG_ACUM_W1     = 0x001A   # uint64 acumulado word 1
 REG_ACUM_W0     = 0x001B   # uint64 acumulado word 0 (menos significativo)
 
-# MAX485: pin GPIO para control DE/RE (BCM). None = sin control SW (jumper fijo a TX)
-RS485_DE_PIN = None
+# MAX485: pin GPIO para control DE/RE (número sysfs Allwinner: banco*32+pin).
+# PC9 = banco C (índice 2) * 32 + 9 = 73. None = sin control SW (jumper fijo a TX)
+RS485_DE_PIN = 73
 
 # Muestreo
 INTERVALO_SEGUNDOS = 10

@@ -12,6 +12,7 @@ from pymodbus.exceptions import ModbusException
 
 import config
 import influx
+import rs485_gpio
 
 logging.basicConfig(
     level=logging.INFO,
@@ -86,6 +87,10 @@ def main():
         log.error("No se pudo conectar a %s", config.SERIAL_PORT)
         sys.exit(1)
 
+    if config.RS485_DE_PIN is not None:
+        rs485_gpio.envolver_cliente(client, config.RS485_DE_PIN)
+        log.info("Control DE/RE activo en GPIO %d", config.RS485_DE_PIN)
+
     log.info("Conectado a %s, muestreando cada %ds", config.SERIAL_PORT, config.INTERVALO_SEGUNDOS)
 
     errores_consecutivos = 0
@@ -114,6 +119,8 @@ def main():
             client.close()
             time.sleep(5)
             client.connect()
+            if config.RS485_DE_PIN is not None:
+                rs485_gpio.envolver_cliente(client, config.RS485_DE_PIN)
             errores_consecutivos = 0
 
         elapsed = time.monotonic() - t0

@@ -36,6 +36,12 @@ systemctl enable --now caudalimetro
 # 5. Regla udev (exportación automática al conectar USB)
 cp service/99-usb-export.rules /etc/udev/rules.d/
 udevadm control --reload-rules
+
+# 6. Permisos GPIO para control DE/RE del MAX485 (si RS485_DE_PIN está configurado)
+groupadd -f gpio
+usermod -aG gpio caudalimetro
+cp service/99-gpio-permisos.rules /etc/udev/rules.d/
+udevadm control --reload-rules
 ```
 
 ## Configuración
@@ -48,6 +54,7 @@ Editar `config.py` antes de instalar:
 | `SLAVE_ADDRESS` | Dirección Modbus del caudalímetro (default: 1) |
 | `INFLUX_TOKEN` | Token InfluxDB (vacío si sin autenticación) |
 | `MOUNT_POINT_BASE` | Ruta base donde el sistema monta USBs |
+| `RS485_DE_PIN` | Pin GPIO (numeración sysfs Allwinner: `banco*32+pin`) para controlar DE/RE del MAX485. `None` si el módulo no requiere control activo |
 
 ## Verificar lectura manual
 

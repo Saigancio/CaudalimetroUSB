@@ -1,41 +1,43 @@
-"""Control del pin DE/RE del MAX485 vía sysfs GPIO."""
+"""Control del pin DE/RE del MAX485 vía libgpiod (interfaz de carácter /dev/gpiochipN)."""
 
 import time
 
-GPIO_BASE = "/sys/class/gpio"
+import gpiod
+from gpiod.line import Direction, Value
+
+CHIP_PATH = "/dev/gpiochip0"
+
+_request = None
 
 
-def exportar(pin: int):
-    path = f"{GPIO_BASE}/gpio{pin}"
-    try:
-        with open(f"{GPIO_BASE}/export", "w") as f:
-            f.write(str(pin))
-        time.sleep(0.1)
-    except OSError:
-        pass  # ya exportado
-    with open(f"{path}/direction", "w") as f:
-        f.write("out")
-    set_valor(pin, 0)
+def _abrir(linea: int):
+    global _request
+    if _request is None:
+        _request = gpiod.request_lines(
+            CHIP_PATH,
+            consumer="caudalimetro-rs485",
+            config={
+                linea: gpiod.LineSettings(
+                    direction=Direction.OUTPUT, output_value=Value.INACTIVE
+                )
+            },
+        )
+    return _request
 
 
-def set_valor(pin: int, valor: int):
-    with open(f"{GPIO_BASE}/gpio{pin}/value", "w") as f:
-        f.write("1" if valor else "0")
-
-
-def envolver_cliente(client, pin: int):
+def envolver_cliente(client, linea: int):
     """Envuelve client.socket.write para activar DE antes de transmitir
     y volver a modo recepción justo después."""
-    exportar(pin)
+    req = _abrir(linea)
     socket = client.socket
     write_original = socket.write
 
     def write_con_de(data):
-        set_valor(pin, 1)
+        req.set_value(linea, Value.ACTIVE)
         n = write_original(data)
         socket.flush()
         time.sleep(0.002)
-        set_valor(pin, 0)
+        req.set_value(linea, Value.INACTIVE)
         return n
 
     socket.write = write_con_de

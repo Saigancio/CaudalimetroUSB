@@ -1,5 +1,1 @@
-SUBSYSTEM=="gpio", KERNEL=="gpiochip*", ACTION=="add", \
-    RUN+="/bin/sh -c 'chown root:gpio /sys/class/gpio/export /sys/class/gpio/unexport; chmod 220 /sys/class/gpio/export /sys/class/gpio/unexport'"
-
-SUBSYSTEM=="gpio", KERNEL=="gpio*", ACTION=="add", \
-    RUN+="/bin/sh -c 'chown root:gpio /sys%p/direction /sys%p/value; chmod 660 /sys%p/direction /sys%p/value'"
+SUBSYSTEM=="gpio", KERNEL=="gpiochip*", GROUP="gpio", MODE="0660"

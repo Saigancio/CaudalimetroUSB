@@ -54,7 +54,7 @@ Editar `config.py` antes de instalar:
 | `SLAVE_ADDRESS` | Dirección Modbus del caudalímetro (default: 1) |
 | `INFLUX_TOKEN` | Token InfluxDB (vacío si sin autenticación) |
 | `MOUNT_POINT_BASE` | Ruta base donde el sistema monta USBs |
-| `RS485_DE_PIN` | Pin GPIO (numeración sysfs Allwinner: `banco*32+pin`) para controlar DE/RE del MAX485. `None` si el módulo no requiere control activo |
+| `RS485_DE_PIN` | Línea GPIO en `/dev/gpiochip0` (numeración `banco*32+pin`) para controlar DE/RE del MAX485 vía libgpiod. `None` si el módulo no requiere control activo |
 
 ## Verificar lectura manual
 

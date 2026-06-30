@@ -74,6 +74,10 @@ journalctl -u caudalimetro -f
 /opt/caudalimetro/venv/bin/python exportar.py
 ```
 
+## Troubleshooting
+
+- [Control DE/RE del MAX485 vía GPIO (Orange Pi / Arch Linux ARM)](docs/RS485_DE-RE_GPIO.md) — diagnóstico de sysfs roto, numeración de pines GPIO, permisos udev y por qué `udevadm trigger` no siempre alcanza.
+
 ## Registros Modbus
 
 | Dirección | Contenido | Tipo | Acceso |

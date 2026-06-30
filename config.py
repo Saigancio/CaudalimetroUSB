@@ -1,5 +1,5 @@
 # Modbus RTU
-SERIAL_PORT = "/dev/ttyS2"
+SERIAL_PORT = "/dev/ttyS5"
 BAUDRATE = 9600
 BYTESIZE = 8
 STOPBITS = 1

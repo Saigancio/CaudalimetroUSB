@@ -44,7 +44,7 @@ def _regs_a_uint64(w3: int, w2: int, w1: int, w0: int) -> int:
 def _leer_datos(client: ModbusSerialClient) -> tuple[float, int, int] | None:
     # Leer bloque 0x0015..0x001B (7 registros) en una sola trama
     resp = client.read_holding_registers(
-        address=0x0015, count=7, slave=config.SLAVE_ADDRESS
+        address=0x0015, count=7, device_id=config.SLAVE_ADDRESS
     )
     if resp.isError():
         log.warning("Error Modbus: %s", resp)
@@ -61,7 +61,7 @@ def resetear_acumulado(client: ModbusSerialClient):
     """Escribe cero en los 4 registros del acumulado (R/W)."""
     valores = [0, 0, 0, 0]
     resp = client.write_registers(
-        address=0x0018, values=valores, slave=config.SLAVE_ADDRESS
+        address=0x0018, values=valores, device_id=config.SLAVE_ADDRESS
     )
     if resp.isError():
         log.error("Error al resetear acumulado: %s", resp)

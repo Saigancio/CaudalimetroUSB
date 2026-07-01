@@ -76,6 +76,7 @@ journalctl -u caudalimetro -f
 
 ## Troubleshooting
 
+- [Instalación desde cero (SD nueva)](docs/INSTALACION_DESDE_CERO.md) — guía completa paso a paso incluyendo UART5, GPIO, InfluxDB y servicio systemd.
 - [Control DE/RE del MAX485 vía GPIO (Orange Pi / Arch Linux ARM)](docs/RS485_DE-RE_GPIO.md) — diagnóstico de sysfs roto, numeración de pines GPIO, permisos udev y por qué `udevadm trigger` no siempre alcanza.
 
 ## Registros Modbus

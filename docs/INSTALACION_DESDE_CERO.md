@@ -200,7 +200,25 @@ ls -l /dev/gpiochip0
 
 ```bash
 sudo systemctl enable --now caudalimetro
+```
+
+Si da error `is masked`:
+```bash
+sudo systemctl unmask caudalimetro
+sudo cp /opt/caudalimetro/service/caudalimetro.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now caudalimetro
+```
+
+Ver logs en tiempo real:
+```bash
 journalctl -u caudalimetro -f
+```
+
+Ver errores del servicio si no arranca:
+```bash
+systemctl status caudalimetro
+journalctl -u caudalimetro -n 50 --no-pager
 ```
 
 El log debe mostrar, en orden:

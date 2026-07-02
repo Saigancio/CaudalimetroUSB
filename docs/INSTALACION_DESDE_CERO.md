@@ -109,11 +109,34 @@ sudo usermod -aG uucp gpio caudalimetro
 
 ## 6. Clonar el repositorio e instalar
 
+El repositorio es público, no requiere autenticación para clonar. Si git no está
+instalado, instalarlo primero (debería haber quedado del paso 3).
+
 ```bash
 sudo mkdir -p /opt/caudalimetro /var/lib/caudalimetro
 sudo git clone https://github.com/saigancio/caudalimetrousb.git /opt/caudalimetro
+```
+
+> Si el repo tiene ramas, el código de producción está en la rama
+> `claude/caudalimetro-usb-system-9wug68`. Cambiar a ella:
+> ```bash
+> cd /opt/caudalimetro
+> sudo git checkout claude/caudalimetro-usb-system-9wug68
+> ```
+
+Dar ownership al usuario del servicio:
+
+```bash
 sudo chown -R caudalimetro:caudalimetro /opt/caudalimetro /var/lib/caudalimetro
 ```
+
+> **Nota**: si más adelante hacés `git pull` para actualizar el código, hay que
+> correrlo como root o con sudo desde `/opt/caudalimetro`, y volver a hacer
+> `chown` si los archivos nuevos quedan con otro dueño. Alternativamente:
+> ```bash
+> sudo git -C /opt/caudalimetro pull
+> sudo chown -R caudalimetro:caudalimetro /opt/caudalimetro
+> ```
 
 Crear entorno virtual e instalar dependencias Python:
 

@@ -117,9 +117,21 @@ sudo chown -R caudalimetro:caudalimetro /opt/caudalimetro /var/lib/caudalimetro
 
 Crear entorno virtual e instalar dependencias Python:
 
+> **Por qué un entorno virtual**: Arch Linux no permite instalar paquetes Python
+> con `pip` de forma global (da error `externally-managed-environment`). El entorno
+> virtual (`venv`) es una carpeta aislada con su propio Python y pip donde sí se
+> puede instalar sin tocar el sistema. Todo el código del servicio usa el Python
+> de este venv, no el del sistema.
+
 ```bash
 sudo -u caudalimetro python -m venv /opt/caudalimetro/venv
 sudo -u caudalimetro /opt/caudalimetro/venv/bin/pip install pymodbus influxdb-client gpiod
+```
+
+Verificar que los paquetes quedaron instalados en el venv:
+
+```bash
+/opt/caudalimetro/venv/bin/pip list | grep -E "pymodbus|influxdb|gpiod"
 ```
 
 ---

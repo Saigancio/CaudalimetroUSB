@@ -280,10 +280,23 @@ sudo -u caudalimetro /opt/caudalimetro/venv/bin/python /opt/caudalimetro/exporta
 
 ## Referencia de pines (header 26 pines, Orange Pi Zero 3 v1.2)
 
-| Pin | Función | Uso |
+| Pin header | Función | Uso |
 |---|---|---|
-| 8 | PH2 / UART5-TX | TX Modbus → MAX485 DI |
-| 10 | PH3 / UART5-RX | RX Modbus ← MAX485 RO |
-| Libre | PC9 / GPIO línea 73 | DE/RE del MAX485 |
-| A | MAX485 A (D+) | RS485 bus positivo → caudalímetro |
-| B | MAX485 B (D-) | RS485 bus negativo → caudalímetro |
+| 8 | PH2 / UART5-TX | TX Modbus → MAX485 **DI** |
+| 10 | PH3 / UART5-RX | RX Modbus ← MAX485 **RO** |
+| Libre | PC9 / GPIO línea 73 | DE/RE del MAX485 (puenteados juntos) |
+
+### Conexión completa MAX485
+
+| Pin MAX485 | Conectar a |
+|---|---|
+| **DI** | TX del Orange Pi (pin 8, PH2) |
+| **RO** | RX del Orange Pi (pin 10, PH3) |
+| **DE** | PC9 (junto con RE) |
+| **RE** | PC9 (junto con DE) |
+| **VCC** | 3.3V del Orange Pi |
+| **GND** | GND del Orange Pi |
+| **A** | RS485 A (D+) → caudalímetro |
+| **B** | RS485 B (D-) → caudalímetro |
+
+> Si el caudalímetro no responde, intentar invertir A y B — es el error más común en RS485.

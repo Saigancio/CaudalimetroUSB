@@ -236,6 +236,22 @@ cd /opt/caudalimetro
 sudo -u caudalimetro /opt/caudalimetro/venv/bin/python lector.py
 ```
 
+Para ver los bytes Modbus crudos enviados y recibidos (útil para diagnosticar
+si el caudalímetro responde algo o no responde nada):
+
+```bash
+sudo systemctl stop caudalimetro
+cd /opt/caudalimetro
+sudo -u caudalimetro /opt/caudalimetro/venv/bin/python3 -c "
+import logging; logging.basicConfig(level=logging.DEBUG)
+exec(open('lector.py').read())
+"
+```
+
+Con esto se ve en hexadecimal exactamente qué trama Modbus transmite el master
+y si llega alguna respuesta del esclavo — permite distinguir entre A/B invertidos
+(llega algo pero no decodifica) y esclavo apagado/desconectado (no llega nada).
+
 ---
 
 ## 11. Configurar exportación a USB

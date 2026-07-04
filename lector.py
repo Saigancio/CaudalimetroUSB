@@ -42,7 +42,7 @@ def _regs_a_uint64(w3: int, w2: int, w1: int, w0: int) -> int:
     return struct.unpack(">Q", raw)[0]
 
 
-def _leer_datos(client: ModbusSerialClient) -> tuple[float, int, int] | None:
+def _leer_datos(client: ModbusSerialClient) -> tuple[float, float, int] | None:
     # Leer bloque 0x0015..0x001B (7 registros) en una sola trama
     resp = client.read_holding_registers(
         address=0x0015, count=7, device_id=config.SLAVE_ADDRESS
@@ -52,7 +52,7 @@ def _leer_datos(client: ModbusSerialClient) -> tuple[float, int, int] | None:
         return None
 
     regs = resp.registers  # [0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B]
-    temperatura = regs[0]
+    temperatura = regs[0] / 10.0  # registro int16 en décimas de grado
     flujo = _regs_a_float32(regs[1], regs[2])
     flujo_acumulado = _regs_a_uint64(regs[3], regs[4], regs[5], regs[6])
     return flujo, temperatura, flujo_acumulado
@@ -103,7 +103,7 @@ def main():
             if datos:
                 flujo, temperatura, acumulado = datos
                 influx.escribir(flujo, temperatura, acumulado)
-                log.info("flujo=%.3f m³/h  temp=%d°C  acum=%d", flujo, temperatura, acumulado)
+                log.info("flujo=%.3f SLM  temp=%.1f°C  acum=%d", flujo, temperatura, acumulado)
                 errores_consecutivos = 0
             else:
                 errores_consecutivos += 1

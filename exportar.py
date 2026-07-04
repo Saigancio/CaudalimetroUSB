@@ -71,15 +71,15 @@ def exportar():
     with open(destino, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
             f,
-            fieldnames=["timestamp", "flujo_m3h", "temperatura_C", "flujo_acumulado_m3"],
+            fieldnames=["timestamp", "flujo_slm", "temperatura_C", "flujo_acumulado_sl"],
         )
         writer.writeheader()
         for row in rows:
             writer.writerow({
                 "timestamp": row["time"].isoformat(),
-                "flujo_m3h": row["flujo"],
+                "flujo_slm": row["flujo"],
                 "temperatura_C": row["temperatura"],
-                "flujo_acumulado_m3": row["flujo_acumulado"],
+                "flujo_acumulado_sl": row["flujo_acumulado"],
             })
 
     log.info("Exportado %d registros → %s", len(rows), destino)

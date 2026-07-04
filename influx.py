@@ -23,7 +23,7 @@ def _get_client():
     return _client, _write_api, _query_api
 
 
-def escribir(flujo: float, temperatura: int, flujo_acumulado: int):
+def escribir(flujo: float, temperatura: float, flujo_acumulado: int):
     _, write_api, _ = _get_client()
     point = (
         Point("caudal")
@@ -32,7 +32,7 @@ def escribir(flujo: float, temperatura: int, flujo_acumulado: int):
         .field("flujo_acumulado", flujo_acumulado)
     )
     write_api.write(bucket=config.INFLUX_BUCKET, record=point)
-    log.debug("Escrito: flujo=%.3f temp=%d acum=%.3f", flujo, temperatura, flujo_acumulado)
+    log.debug("Escrito: flujo=%.3f SLM temp=%.1f°C acum=%d", flujo, temperatura, flujo_acumulado)
 
 
 def consultar_desde(timestamp_ns: int) -> list[dict]:

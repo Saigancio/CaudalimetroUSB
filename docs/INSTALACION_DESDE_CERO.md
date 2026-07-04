@@ -252,6 +252,29 @@ Con esto se ve en hexadecimal exactamente qué trama Modbus transmite el master
 y si llega alguna respuesta del esclavo — permite distinguir entre A/B invertidos
 (llega algo pero no decodifica) y esclavo apagado/desconectado (no llega nada).
 
+Para ver los 7 registros en crudo sin pasar por el servicio (útil para diagnosticar
+valores incorrectos de flujo o temperatura):
+
+```bash
+sudo systemctl stop caudalimetro
+cd /opt/caudalimetro
+sudo -u caudalimetro /opt/caudalimetro/venv/bin/python3 -c "
+from pymodbus.client import ModbusSerialClient
+import config
+c = ModbusSerialClient(port=config.SERIAL_PORT, baudrate=config.BAUDRATE, bytesize=config.BYTESIZE, stopbits=config.STOPBITS, parity=config.PARITY, timeout=config.TIMEOUT)
+c.connect()
+r = c.read_holding_registers(address=0x0015, count=7, device_id=config.SLAVE_ADDRESS)
+print('regs:', r.registers)
+print('flujo raw hex:', hex(r.registers[1] << 16 | r.registers[2]))
+c.close()
+"
+```
+
+Interpretación de la salida:
+- `regs[0]` → temperatura raw (dividir /10 para obtener °C)
+- `regs[1]`, `regs[2]` → flujo high/low word (uint32, dividir /100 para obtener SLM)
+- `regs[3..6]` → flujo acumulado (uint64)
+
 ---
 
 ## 11. Configurar exportación a USB

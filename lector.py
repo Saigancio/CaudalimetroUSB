@@ -30,10 +30,9 @@ def _stop(sig, frame):
     _running = False
 
 
-def _regs_a_float32(hi: int, lo: int) -> float:
-    """Convierte dos registros de 16 bits (big-endian) a float32."""
-    raw = struct.pack(">HH", hi, lo)
-    return struct.unpack(">f", raw)[0]
+def _regs_a_uint32(hi: int, lo: int) -> int:
+    """Convierte dos registros de 16 bits (big-endian) a uint32."""
+    return (hi << 16) | lo
 
 
 def _regs_a_uint64(w3: int, w2: int, w1: int, w0: int) -> int:
@@ -53,7 +52,7 @@ def _leer_datos(client: ModbusSerialClient) -> tuple[float, float, int] | None:
 
     regs = resp.registers  # [0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B]
     temperatura = regs[0] / 10.0  # registro int16 en décimas de grado
-    flujo = _regs_a_float32(regs[1], regs[2])
+    flujo = _regs_a_uint32(regs[1], regs[2]) / 100.0  # uint32 big-endian en centésimas de SLM
     flujo_acumulado = _regs_a_uint64(regs[3], regs[4], regs[5], regs[6])
     return flujo, temperatura, flujo_acumulado
 

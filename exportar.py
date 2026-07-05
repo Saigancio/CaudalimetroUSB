@@ -50,6 +50,17 @@ def _encontrar_usb() -> Path | None:
     return None
 
 
+def _esperar_usb(intentos: int = 10, pausa: float = 1.0) -> "Path | None":
+    """Reintenta encontrar el USB hasta que se monte (udisksd tarda ~1s tras udev)."""
+    for i in range(intentos):
+        usb = _encontrar_usb()
+        if usb is not None:
+            return usb
+        log.info("Esperando mount USB... intento %d/%d", i + 1, intentos)
+        time.sleep(pausa)
+    return None
+
+
 def exportar():
     ultimo_ts = _leer_ultimo_timestamp()
     log.info("Exportando desde timestamp %d ns", ultimo_ts)
@@ -59,9 +70,9 @@ def exportar():
         log.info("Sin datos nuevos para exportar.")
         return
 
-    usb = _encontrar_usb()
+    usb = _esperar_usb()
     if usb is None:
-        log.error("No se encontró USB montado en %s", config.MOUNT_POINT_BASE)
+        log.error("No se encontró USB montado en %s tras esperar", config.MOUNT_POINT_BASE)
         sys.exit(1)
 
     ts_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M")

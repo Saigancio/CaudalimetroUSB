@@ -9,6 +9,9 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Garantizar que los módulos del proyecto se encuentren sin importar el CWD
+sys.path.insert(0, "/opt/caudalimetro")
+
 import config
 import influx
 
@@ -34,19 +37,23 @@ def _guardar_ultimo_timestamp(ts_ns: int):
 
 
 def _encontrar_usb() -> Path | None:
-    """Devuelve el primer punto de montaje USB disponible con escritura."""
-    base = Path(config.MOUNT_POINT_BASE)
-    if not base.exists():
-        return None
-    for entry in sorted(base.iterdir()):
-        if entry.is_dir() and os.access(entry, os.W_OK):
-            # Descarta el home del usuario y mounts del sistema
-            if entry.name.startswith(("sd", "mmcblk", "sda", "sdb", "sdc", "usb")):
-                return entry
-    # Fallback: cualquier directorio montado con escritura (excluye / y /boot)
-    for entry in sorted(base.iterdir()):
-        if entry.is_dir() and os.access(entry, os.W_OK) and entry.name not in ("root", "boot"):
-            return entry
+    """Busca en /proc/mounts un filesystem FAT/exFAT sobre /dev/sd* (USB).
+    Funciona independientemente del mount namespace del proceso."""
+    try:
+        for line in Path("/proc/mounts").read_text().splitlines():
+            partes = line.split()
+            if len(partes) < 3:
+                continue
+            dispositivo, punto, fstype = partes[0], partes[1], partes[2]
+            if fstype.lower() not in ("vfat", "exfat", "ntfs", "fuseblk"):
+                continue
+            if not dispositivo.startswith("/dev/sd"):
+                continue
+            p = Path(punto)
+            if p.is_dir() and os.access(p, os.W_OK):
+                return p
+    except OSError:
+        pass
     return None
 
 

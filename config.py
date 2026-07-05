@@ -9,8 +9,8 @@ SLAVE_ADDRESS = 1
 
 # Registros Modbus (dirección base 0-indexed para pymodbus)
 REG_TEMPERATURA = 0x0015   # int16
-REG_FLUJO_HI    = 0x0016   # float32 word alto
-REG_FLUJO_LO    = 0x0017   # float32 word bajo
+REG_FLUJO_HI    = 0x0016   # uint32 word alto (valor en centésimas de SLM)
+REG_FLUJO_LO    = 0x0017   # uint32 word bajo
 REG_ACUM_W3     = 0x0018   # uint64 acumulado word 3 (más significativo)
 REG_ACUM_W2     = 0x0019   # uint64 acumulado word 2
 REG_ACUM_W1     = 0x001A   # uint64 acumulado word 1
@@ -32,5 +32,5 @@ INFLUX_BUCKET = "caudalimetro"
 
 # Exportación CSV
 CSV_DIR_LOCAL = "/var/lib/caudalimetro"   # directorio de trabajo local
-MOUNT_POINT_BASE = "/media"               # busca USB aquí
+MOUNT_POINT_BASE = "/run/media/caudalimetro"  # Arch Linux monta USBs aquí (udisks2)
 TIMESTAMP_FILE = f"{CSV_DIR_LOCAL}/.last_export"

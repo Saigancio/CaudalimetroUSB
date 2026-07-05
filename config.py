@@ -32,5 +32,5 @@ INFLUX_BUCKET = "caudalimetro"
 
 # Exportación CSV
 CSV_DIR_LOCAL = "/var/lib/caudalimetro"   # directorio de trabajo local
-MOUNT_POINT_BASE = "/run/media/caudalimetro"  # Arch Linux monta USBs aquí (udisks2)
+MOUNT_POINT_BASE = "/media"  # udisks2 con UDISKS_FILESYSTEM_SHARED=1 monta aquí
 TIMESTAMP_FILE = f"{CSV_DIR_LOCAL}/.last_export"

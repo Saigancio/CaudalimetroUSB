@@ -1,8 +1,12 @@
 # Dispara exportación CSV al conectar cualquier dispositivo de almacenamiento USB
 # Arch Linux ARM — Orange Pi Zero 3
 #
-# Requisito: el servicio caudalimetro-export@.service debe estar instalado en
-# /etc/systemd/system/caudalimetro-export@.service
+# UDISKS_FILESYSTEM_SHARED=1 hace que udisks2 monte en /media/<label>
+# (namespace compartido) en vez de /run/media/<user>/ (namespace privado de udevd).
+# Sin esto, el proceso disparado por udev no puede ver el mount del USB.
+
+ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="usb", ENV{ID_FS_TYPE}!="", \
+    ENV{UDISKS_FILESYSTEM_SHARED}="1"
 
 ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="usb", ENV{ID_FS_TYPE}!="", \
     RUN+="/bin/systemd-run --no-block --unit=caudalimetro-export \

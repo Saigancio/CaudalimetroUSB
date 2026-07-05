@@ -38,13 +38,16 @@ def _guardar_ultimo_timestamp(ts_ns: int):
 
 def _encontrar_usb() -> Path | None:
     """Busca en /proc/mounts un filesystem FAT/exFAT sobre /dev/sd* (USB).
-    Funciona independientemente del mount namespace del proceso."""
+    Funciona independientemente del mount namespace del proceso.
+    Nota: /proc/mounts codifica espacios como \\040, hay que decodificar."""
     try:
         for line in Path("/proc/mounts").read_text().splitlines():
             partes = line.split()
             if len(partes) < 3:
                 continue
             dispositivo, punto, fstype = partes[0], partes[1], partes[2]
+            # Decodificar escapes octal de /proc/mounts (\040 = espacio, etc.)
+            punto = punto.replace("\\040", " ").replace("\\011", "\t").replace("\\134", "\\")
             if fstype.lower() not in ("vfat", "exfat", "ntfs", "fuseblk"):
                 continue
             if not dispositivo.startswith("/dev/sd"):

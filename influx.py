@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 import config
@@ -38,7 +39,8 @@ def escribir(flujo: float, temperatura: float, flujo_acumulado: int):
 def consultar_desde(timestamp_ns: int) -> list[dict]:
     """Devuelve lista de dicts {time, flujo, temperatura, flujo_acumulado} desde timestamp_ns."""
     _, _, query_api = _get_client()
-    start = f"{timestamp_ns}ns"
+    dt = datetime.fromtimestamp(timestamp_ns / 1e9, tz=timezone.utc)
+    start = dt.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     flux = f'''
 from(bucket: "{config.INFLUX_BUCKET}")
   |> range(start: {start})

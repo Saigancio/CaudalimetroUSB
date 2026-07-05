@@ -32,5 +32,5 @@ INFLUX_BUCKET = "caudalimetro"
 
 # Exportación CSV
 CSV_DIR_LOCAL = "/var/lib/caudalimetro"   # directorio de trabajo local
-MOUNT_POINT_BASE = "/media"  # udisks2 con UDISKS_FILESYSTEM_SHARED=1 monta aquí
+MOUNT_POINT_USB = "/mnt/caudalimetro-usb"  # path fijo donde el script monta el USB
 TIMESTAMP_FILE = f"{CSV_DIR_LOCAL}/.last_export"

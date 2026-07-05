@@ -1,15 +1,10 @@
 # Dispara exportación CSV al conectar cualquier dispositivo de almacenamiento USB
 # Arch Linux ARM — Orange Pi Zero 3
 #
-# UDISKS_FILESYSTEM_SHARED=1 hace que udisks2 monte en /media/<label>
-# (namespace compartido) en vez de /run/media/<user>/ (namespace privado de udevd).
-# Sin esto, el proceso disparado por udev no puede ver el mount del USB.
-
-ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="usb", ENV{ID_FS_TYPE}!="", \
-    ENV{UDISKS_FILESYSTEM_SHARED}="1"
+# El script recibe el nombre del dispositivo (ej: /dev/sda1), lo monta en
+# /mnt/caudalimetro-usb, exporta el CSV y lo desmonta. Corre como root para
+# poder montar sin depender de udisks2 ni del mount namespace del usuario.
 
 ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="usb", ENV{ID_FS_TYPE}!="", \
     RUN+="/bin/systemd-run --no-block --unit=caudalimetro-export \
-          --uid=caudalimetro --gid=caudalimetro \
-          --working-directory=/opt/caudalimetro \
-          /opt/caudalimetro/venv/bin/python /opt/caudalimetro/exportar.py"
+          /opt/caudalimetro/venv/bin/python /opt/caudalimetro/exportar.py $env{DEVNAME}"

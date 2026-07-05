@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Exporta datos de InfluxDB a CSV en el primer USB montado disponible."""
+"""Exporta datos de InfluxDB a CSV en el USB indicado por argumento."""
 
 import csv
 import logging
-import os
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -22,9 +22,10 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
+MOUNT_PATH = Path(config.MOUNT_POINT_USB)
+
 
 def _leer_ultimo_timestamp() -> int:
-    """Devuelve timestamp en ns de la última exportación, o 0 si no existe."""
     try:
         return int(Path(config.TIMESTAMP_FILE).read_text().strip())
     except (FileNotFoundError, ValueError):
@@ -36,80 +37,69 @@ def _guardar_ultimo_timestamp(ts_ns: int):
     Path(config.TIMESTAMP_FILE).write_text(str(ts_ns))
 
 
-def _encontrar_usb() -> Path | None:
-    """Busca en /proc/mounts un filesystem FAT/exFAT sobre /dev/sd* (USB).
-    Funciona independientemente del mount namespace del proceso.
-    Nota: /proc/mounts codifica espacios como \\040, hay que decodificar."""
-    try:
-        for line in Path("/proc/mounts").read_text().splitlines():
-            partes = line.split()
-            if len(partes) < 3:
-                continue
-            dispositivo, punto, fstype = partes[0], partes[1], partes[2]
-            # Decodificar escapes octal de /proc/mounts (\040 = espacio, etc.)
-            punto = punto.replace("\\040", " ").replace("\\011", "\t").replace("\\134", "\\")
-            if fstype.lower() not in ("vfat", "exfat", "ntfs", "fuseblk"):
-                continue
-            if not dispositivo.startswith("/dev/sd"):
-                continue
-            p = Path(punto)
-            if p.is_dir() and os.access(p, os.W_OK):
-                return p
-    except OSError:
-        pass
-    return None
+def _montar(dispositivo: str) -> bool:
+    """Monta dispositivo en MOUNT_PATH. Devuelve True si tuvo éxito."""
+    MOUNT_PATH.mkdir(parents=True, exist_ok=True)
+    result = subprocess.run(
+        ["mount", dispositivo, str(MOUNT_PATH)],
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        log.error("mount falló: %s", result.stderr.strip())
+        return False
+    log.info("Montado %s en %s", dispositivo, MOUNT_PATH)
+    return True
 
 
-def _esperar_usb(intentos: int = 10, pausa: float = 1.0) -> "Path | None":
-    """Reintenta encontrar el USB hasta que se monte (udisksd tarda ~1s tras udev)."""
-    for i in range(intentos):
-        usb = _encontrar_usb()
-        if usb is not None:
-            return usb
-        log.info("Esperando mount USB... intento %d/%d", i + 1, intentos)
-        time.sleep(pausa)
-    return None
+def _desmontar():
+    subprocess.run(["umount", str(MOUNT_PATH)], capture_output=True)
+    log.info("Desmontado %s", MOUNT_PATH)
 
 
-def exportar():
-    usb = _esperar_usb()
-    if usb is None:
-        log.error("No se encontró USB montado en %s tras esperar", config.MOUNT_POINT_BASE)
+def exportar(dispositivo: str):
+    # Esperar a que el kernel termine de inicializar el dispositivo
+    time.sleep(2)
+
+    if not _montar(dispositivo):
         sys.exit(1)
 
-    ultimo_ts = _leer_ultimo_timestamp()
-    log.info("Exportando desde timestamp %d ns", ultimo_ts)
+    try:
+        ultimo_ts = _leer_ultimo_timestamp()
+        log.info("Exportando desde timestamp %d ns", ultimo_ts)
 
-    rows = influx.consultar_desde(ultimo_ts)
-    if not rows:
-        log.info("Sin datos nuevos para exportar.")
-        return
+        rows = influx.consultar_desde(ultimo_ts)
+        if not rows:
+            log.info("Sin datos nuevos para exportar.")
+            return
 
-    ts_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M")
-    nombre = f"caudal_{ts_str}.csv"
-    destino = usb / nombre
+        ts_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M")
+        destino = MOUNT_PATH / f"caudal_{ts_str}.csv"
 
-    with open(destino, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(
-            f,
-            fieldnames=["timestamp", "flujo_slm", "temperatura_C", "flujo_acumulado_sl"],
-        )
-        writer.writeheader()
-        for row in rows:
-            writer.writerow({
-                "timestamp": row["time"].isoformat(),
-                "flujo_slm": row["flujo"],
-                "temperatura_C": row["temperatura"],
-                "flujo_acumulado_sl": row["flujo_acumulado"],
-            })
+        with open(destino, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(
+                f,
+                fieldnames=["timestamp", "flujo_slm", "temperatura_C", "flujo_acumulado_sl"],
+            )
+            writer.writeheader()
+            for row in rows:
+                writer.writerow({
+                    "timestamp": row["time"].isoformat(),
+                    "flujo_slm": row["flujo"],
+                    "temperatura_C": row["temperatura"],
+                    "flujo_acumulado_sl": row["flujo_acumulado"],
+                })
 
-    log.info("Exportado %d registros → %s", len(rows), destino)
+        log.info("Exportado %d registros → %s", len(rows), destino)
 
-    # Guarda el timestamp del último registro + 1ns para no repetirlo
-    ultimo = rows[-1]["time"]
-    ultimo_ns = int(ultimo.timestamp() * 1e9) + 1
-    _guardar_ultimo_timestamp(ultimo_ns)
+        ultimo = rows[-1]["time"]
+        _guardar_ultimo_timestamp(int(ultimo.timestamp() * 1e9) + 1)
+
+    finally:
+        _desmontar()
 
 
 if __name__ == "__main__":
-    exportar()
+    if len(sys.argv) < 2:
+        log.error("Uso: exportar.py <dispositivo>  (ej: /dev/sda1)")
+        sys.exit(1)
+    exportar(sys.argv[1])

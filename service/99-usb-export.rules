@@ -4,7 +4,11 @@
 # El script recibe el nombre del dispositivo (ej: /dev/sda1), lo monta en
 # /mnt/caudalimetro-usb, exporta el CSV y lo desmonta. Corre como root para
 # poder montar sin depender de udisks2 ni del mount namespace del usuario.
+#
+# Nota: --unit=caudalimetro-export-%k usa el nombre del kernel device (ej: sda)
+# para que cada conexión tenga un unit name único. Un nombre fijo causa colisión
+# si el unit anterior quedó en estado fallido (systemd-run rechaza crear otro).
 
 ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="usb", ENV{ID_FS_TYPE}!="", \
-    RUN+="/bin/systemd-run --no-block --unit=caudalimetro-export \
+    RUN+="/bin/systemd-run --no-block --unit=caudalimetro-export-%k \
           /opt/caudalimetro/venv/bin/python /opt/caudalimetro/exportar.py /dev/%k"

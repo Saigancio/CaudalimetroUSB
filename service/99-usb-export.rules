@@ -7,4 +7,4 @@
 
 ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="usb", ENV{ID_FS_TYPE}!="", \
     RUN+="/bin/systemd-run --no-block --unit=caudalimetro-export \
-          /opt/caudalimetro/venv/bin/python /opt/caudalimetro/exportar.py %E{DEVNAME}"
+          /opt/caudalimetro/venv/bin/python /opt/caudalimetro/exportar.py /dev/%k"

@@ -9,7 +9,6 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Garantizar que los módulos del proyecto se encuentren sin importar el CWD
 sys.path.insert(0, "/opt/caudalimetro")
 
 import config
@@ -37,8 +36,18 @@ def _guardar_ultimo_timestamp(ts_ns: int):
     Path(config.TIMESTAMP_FILE).write_text(str(ts_ns))
 
 
+def _esta_montado() -> bool:
+    """Devuelve True si MOUNT_PATH ya tiene algo montado."""
+    result = subprocess.run(["mountpoint", "-q", str(MOUNT_PATH)])
+    return result.returncode == 0
+
+
 def _montar(dispositivo: str) -> bool:
     """Monta dispositivo en MOUNT_PATH. Devuelve True si tuvo éxito."""
+    if _esta_montado():
+        log.warning("Ya hay algo montado en %s, desmontando primero", MOUNT_PATH)
+        _desmontar()
+
     MOUNT_PATH.mkdir(parents=True, exist_ok=True)
     result = subprocess.run(
         ["mount", dispositivo, str(MOUNT_PATH)],
@@ -52,12 +61,15 @@ def _montar(dispositivo: str) -> bool:
 
 
 def _desmontar():
-    subprocess.run(["umount", str(MOUNT_PATH)], capture_output=True)
-    log.info("Desmontado %s", MOUNT_PATH)
+    subprocess.run(["sync"], capture_output=True)
+    result = subprocess.run(["umount", str(MOUNT_PATH)], capture_output=True, text=True)
+    if result.returncode != 0:
+        log.error("umount falló: %s", result.stderr.strip())
+    else:
+        log.info("Desmontado %s", MOUNT_PATH)
 
 
 def exportar(dispositivo: str):
-    # Esperar a que el kernel termine de inicializar el dispositivo
     time.sleep(2)
 
     if not _montar(dispositivo):
